@@ -96,6 +96,7 @@ public class ExtensionLoader<T> {
 
     private ExtensionLoader(Class<?> type) {
         this.type = type;
+        //新建一个ExtensionFactory, 如果本身该load就是ExtensionFactory类型， 则objectFactory置为null
         objectFactory = (type == ExtensionFactory.class ? null : ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension());
     }
 

@@ -22,6 +22,9 @@ import java.io.Serializable;
 
 /**
  * @export
+ * 方法参数配置
+ * https://dubbo.gitbooks.io/dubbo-user-book/references/xml/dubbo-argument.html
+ * 用途参见：《参数回调》http://dubbo.io/books/dubbo-user-book/demos/callback-parameter.html
  */
 public class ArgumentConfig implements Serializable {
 

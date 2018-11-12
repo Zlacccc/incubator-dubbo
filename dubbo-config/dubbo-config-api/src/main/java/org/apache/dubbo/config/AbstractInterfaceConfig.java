@@ -51,34 +51,67 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     private static final long serialVersionUID = -1559314110797223229L;
 
     // local impl class name for the service interface
+    /**
+     * 服务接口客户端本地代理类名，用于在客户端执行本地逻辑，如本地缓存
+     *
+     * 该本地代理类的构造函数必须传入远程代理对象 构造函数如：public XxxServiceLocal(XxxService xxxService)
+     *设为 true，表示使用缺省代理类名，即：接口名 + Local 后缀
+     */
     protected String local;
 
     // local stub class name for the service interface
+    /**
+     * 服务接口客户端本地代理类名，用于在客户端执行本地逻辑，如本地缓存
+     *
+     * 该本地代理类的构造函数必须传入远程代理对象 构造函数如：public XxxServiceLocal(XxxService xxxService)
+     *设为 true，表示使用缺省代理类名，即：接口名 + Stub 后缀
+     */
     protected String stub;
 
     // service monitor
     protected MonitorConfig monitor;
 
     // proxy type
+    /**
+     * 选择动态代理实现策略，可选：javassist, jdk
+     */
     protected String proxy;
 
     // cluster type
+    /**
+     * 集群方式，可选：failover/failfast/failsafe/failback/forking
+     */
     protected String cluster;
 
     // filter
+    /**
+     * 服务消费方远程调用过程拦截器名称，多个名称用逗号分隔
+     */
     protected String filter;
 
     // listener
+    /**
+     * 服务消费方引用服务监听器名称，多个名称用逗号分隔
+     */
     protected String listener;
 
     // owner
+    /**
+     * 调用服务负责人，用于服务治理，请填写负责人公司邮箱前缀
+     */
     protected String owner;
 
     // connection limits, 0 means shared connection, otherwise it defines the connections delegated to the
     // current service
+    /**
+     * 对每个提供者的最大连接数，rmi、http、hessian等短连接协议表示限制连接数，dubbo等长连接协表示建立的长连接个数
+     */
     protected Integer connections;
 
     // layer
+    /**
+     * 服务调用者所在的分层。如：biz、dao、intl:web、china:acton。
+     */
     protected String layer;
 
     // application info
@@ -102,9 +135,14 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     // the scope for referring/exporting a service, if it's local, it means searching in current JVM only.
     private String scope;
 
+    /**
+     * 校验 RegistryConfig 配置数组。
+     * 实际上，该方法会初始化 RegistryConfig 的配置属性。
+     */
     protected void checkRegistry() {
         // for backward compatibility
         if (registries == null || registries.isEmpty()) {
+            // // 当 RegistryConfig 对象数组为空时，若有 `dubbo.registry.address` 配置，进行创建。
             String address = ConfigUtils.getProperty("dubbo.registry.address");
             if (address != null && address.length() > 0) {
                 registries = new ArrayList<RegistryConfig>();
@@ -125,14 +163,20 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                     + Version.getVersion()
                     + ", Please add <dubbo:registry address=\"...\" /> to your spring config. If you want unregister, please set <dubbo:service registry=\"N/A\" />");
         }
+        //// 读取环境变量和 properties 配置到 RegistryConfig 对象数组。
         for (RegistryConfig registryConfig : registries) {
             appendProperties(registryConfig);
         }
     }
 
     @SuppressWarnings("deprecation")
+    /**
+     * 校验ApplicationConfig配置
+     * 实际上该方法会初始化ApplicationConfig的属性
+     */
     protected void checkApplication() {
         // for backward compatibility
+        //// 当 ApplicationConfig 对象为空时，若有 `dubbo.application.name` 配置，进行创建。
         if (application == null) {
             String applicationName = ConfigUtils.getProperty("dubbo.application.name");
             if (applicationName != null && applicationName.length() > 0) {
@@ -143,8 +187,10 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
             throw new IllegalStateException(
                     "No such application config! Please add <dubbo:application name=\"...\" /> to your spring config.");
         }
+        // 读取环境变量和 properties 配置到 ApplicationConfig 对象。
         appendProperties(application);
 
+        //初始化优雅停机的超时时长，参见 http://dubbo.io/books/dubbo-user-book/demos/graceful-shutdown.html 文档。
         String wait = ConfigUtils.getProperty(Constants.SHUTDOWN_WAIT_KEY);
         if (wait != null && wait.trim().length() > 0) {
             System.setProperty(Constants.SHUTDOWN_WAIT_KEY, wait.trim());
@@ -156,22 +202,28 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
     }
 
+    //加载注册中心
     protected List<URL> loadRegistries(boolean provider) {
+        //校验注册中心
         checkRegistry();
         List<URL> registryList = new ArrayList<URL>();
         if (registries != null && !registries.isEmpty()) {
             for (RegistryConfig config : registries) {
+                //获取地址
                 String address = config.getAddress();
                 if (address == null || address.length() == 0) {
                     address = Constants.ANYHOST_VALUE;
                 }
+                //读取环境变量
                 String sysaddress = System.getProperty("dubbo.registry.address");
                 if (sysaddress != null && sysaddress.length() > 0) {
                     address = sysaddress;
                 }
                 if (address.length() > 0 && !RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
                     Map<String, String> map = new HashMap<String, String>();
+                    //Application配置加到map
                     appendParameters(map, application);
+                    //RegistryConfig配置加到map
                     appendParameters(map, config);
                     map.put("path", RegistryService.class.getName());
                     map.put("dubbo", Version.getProtocolVersion());
@@ -255,6 +307,14 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         return null;
     }
 
+    /**
+     * 校验接口和方法
+     *  1. 接口类非空，并是接口
+     *  2. 方法在接口中已定义
+     *
+     * @param interfaceClass 接口类
+     * @param methods 方法数组
+     */
     protected void checkInterfaceAndMethods(Class<?> interfaceClass, List<MethodConfig> methods) {
         // interface cannot be null
         if (interfaceClass == null) {
@@ -286,6 +346,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         }
     }
 
+    // 校验 Stub 和 Mock 相关的配置
     protected void checkStubAndMock(Class<?> interfaceClass) {
         if (ConfigUtils.isNotEmpty(local)) {
             Class<?> localClass = ConfigUtils.isDefault(local) ? ReflectUtils.forName(interfaceClass.getName() + "Local") : ReflectUtils.forName(local);

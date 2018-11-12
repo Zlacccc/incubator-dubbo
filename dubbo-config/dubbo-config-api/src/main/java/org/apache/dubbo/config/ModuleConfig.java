@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 模块信息配置
  * ModuleConfig
  *
  * @export
@@ -30,7 +31,10 @@ public class ModuleConfig extends AbstractConfig {
 
     private static final long serialVersionUID = 5508512956753757169L;
 
-    // module name
+    /**
+     * 当前模块名称，用于注册中心计算模块间依赖关系
+     * 必填
+     */
     private String name;
 
     // module version

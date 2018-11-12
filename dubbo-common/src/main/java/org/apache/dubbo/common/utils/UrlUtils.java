@@ -32,6 +32,7 @@ public class UrlUtils {
      */
     private final static String URL_PARAM_STARTING_SYMBOL = "?";
 
+    //将配置解析成URL
     public static URL parseURL(String address, Map<String, String> defaults) {
         if (address == null || address.length() == 0) {
             return null;
@@ -133,6 +134,7 @@ public class UrlUtils {
         if (address == null || address.length() == 0) {
             return null;
         }
+        //多注册中心需解析
         String[] addresses = Constants.REGISTRY_SPLIT_PATTERN.split(address);
         if (addresses == null || addresses.length == 0) {
             return null; //here won't be empty

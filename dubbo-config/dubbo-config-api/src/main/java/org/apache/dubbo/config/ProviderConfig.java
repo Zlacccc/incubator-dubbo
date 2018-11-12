@@ -28,7 +28,7 @@ import org.apache.dubbo.remoting.telnet.TelnetHandler;
 import java.util.Arrays;
 
 /**
- * ProviderConfig
+ * ProviderConfig 实现 AbstractServiceConfig ，服务提供者缺省值配置。
  *
  * @export
  * @see org.apache.dubbo.config.ProtocolConfig
@@ -41,63 +41,128 @@ public class ProviderConfig extends AbstractServiceConfig {
     // ======== protocol default values, it'll take effect when protocol's attributes are not set ========
 
     // service IP addresses (used when there are multiple network cards available)
+    /**
+     * 服务主机名，多网卡选择或指定VIP及域名时使用，为空则自动查找本机IP，建议不要配置，让Dubbo自动获取本机IP
+     *
+     */
     private String host;
 
     // service port
+    /**
+     * 端口
+     */
     private Integer port;
 
     // context path
+    /**
+     * 提供者上下文路径，为服务path的前缀
+     */
     private String contextpath;
 
     // thread pool
+    /**
+     * 线程池类型，可选：fixed/cached
+     */
     private String threadpool;
 
     // thread pool size (fixed size)
+    /**
+     * 服务线程池大小(固定大小)   100
+     */
     private Integer threads;
 
     // IO thread pool size (fixed size)
+    /**
+     * IO线程池，接收网络读写中断，以及序列化和反序列化，不处理业务，业务线程池参见threads配置，此线程池和CPU相关，不建议配置
+     * CPU + 1
+     */
     private Integer iothreads;
 
     // thread pool queue length
+    /**
+     * 线程池队列大小，当线程池满时，排队等待执行的队列大小，
+     * 建议不要设置，当线程程池时应立即失败，重试其它服务提供机器，而不是排队，除非有特殊需求。
+     */
     private Integer queues;
 
     // max acceptable connections
+    /**
+     * 服务提供者最大可接受连接数
+     */
     private Integer accepts;
 
     // protocol codec
+    /**
+     * 协议编码方式
+     * dubbo
+     */
     private String codec;
 
     // charset
+    /**
+     * 序列化编码
+     * utf-8
+     */
     private String charset;
 
     // payload max length
+    /**
+     * 请求及响应数据包大小限制，单位：字节
+     * 88388608(=8M)
+     */
     private Integer payload;
 
     // buffer size
+    /**
+     * 网络读写缓冲区大小
+     * 8192
+     */
     private Integer buffer;
 
     // transporter
+    /**
+     *协议的服务端和客户端实现类型，比如：dubbo协议的mina,netty等，可以分拆为server和client配置
+     */
     private String transporter;
 
     // how information gets exchanged
+    /**
+     *信息交换方式
+     */
     private String exchanger;
 
     // thread dispatching mode
+    /**
+     *协议的消息派发方式，用于指定线程模型，比如：dubbo协议的all, direct, message, execution, connection等
+     */
     private String dispatcher;
 
     // networker
     private String networker;
 
     // server impl
+    /**
+     * 协议的服务器端实现类型，比如：dubbo协议的mina,netty等，http协议的jetty,servlet等
+     * dubbo协议缺省为netty，http协议缺省为servlet
+     */
     private String server;
 
     // client impl
+    /**
+     * 协议的客户端实现类型，比如：dubbo协议的mina,netty等
+     */
     private String client;
 
     // supported telnet commands, separated with comma.
+    /**
+     * 所支持的telnet命令，多个命令用逗号分隔
+     */
     private String telnet;
 
     // command line prompt
+    /**
+     *
+     */
     private String prompt;
 
     // status check

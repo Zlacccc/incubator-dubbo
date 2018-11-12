@@ -33,9 +33,13 @@ import java.util.Map;
  * InjvmProtocol
  */
 public class InjvmProtocol extends AbstractProtocol implements Protocol {
-
+    /**
+     * 协议名
+     */
     public static final String NAME = Constants.LOCAL_PROTOCOL;
-
+    /**
+     * 默认端口
+     */
     public static final int DEFAULT_PORT = 0;
     private static InjvmProtocol INSTANCE;
 
