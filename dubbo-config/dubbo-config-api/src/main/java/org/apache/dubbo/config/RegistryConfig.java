@@ -232,7 +232,7 @@ public class RegistryConfig extends AbstractConfig {
     }
 
     public void setFile(String file) {
-        checkPathLength("file", file);
+        checkPathLength("afile", file);
         this.file = file;
     }
 

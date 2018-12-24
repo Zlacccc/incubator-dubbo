@@ -29,18 +29,26 @@ public class ConsumerConfig extends AbstractReferenceConfig {
     private Boolean isDefault;
 
     // networking framework client uses: netty, mina, etc.
+    //客户端传输类型设置，如Dubbo协议的netty或mina。
     private String client;
 
     // consumer thread pool type: cached, fixed, limit, eager
+    //线程池类型
     private String threadpool;
 
     // consumer threadpool core thread size
+    //核心线程池大小
     private Integer corethreads;
 
     // consumer threadpool thread size
+    //服务线程池大小(固定大小)   100
     private Integer threads;
 
     // consumer threadpool queue size
+    /**
+     * 线程池队列大小，当线程池满时，排队等待执行的队列大小，
+     * 建议不要设置，当线程程池时应立即失败，重试其它服务提供机器，而不是排队，除非有特殊需求。
+     */
     private Integer queues;
 
     @Override
