@@ -17,6 +17,8 @@
 package org.apache.dubbo.common.extension;
 
 /**
+ * 拓展工厂接口
+ * ExtensionFactory扩展点分为 SpiExtensionFactory、AdaptiveExtensionFactory和 SpringExtensionFactory三种
  * ExtensionFactory
  */
 @SPI
@@ -28,6 +30,14 @@ public interface ExtensionFactory {
      * @param type object type.
      * @param name object name.
      * @return object instance.
+     */
+    /**
+     * Get extension.
+     *获得拓展对象，向创建的拓展对象注入依赖属性。在实际代码中，我们可以看到不仅仅获得的是拓展对象，也可以是 Spring 中的 Bean 对象。
+     *
+     * @param type object type. 拓展接口
+     * @param name object name. 拓展名
+     * @return object instance. 拓展对象
      */
     <T> T getExtension(Class<T> type, String name);
 

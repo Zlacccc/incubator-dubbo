@@ -32,6 +32,9 @@ import org.springframework.context.ApplicationContext;
 public class SpringExtensionFactory implements ExtensionFactory {
     private static final Logger logger = LoggerFactory.getLogger(SpringExtensionFactory.class);
 
+    /**
+     * Spring Context 集合
+     */
     private static final Set<ApplicationContext> contexts = new ConcurrentHashSet<ApplicationContext>();
 
     public static void addApplicationContext(ApplicationContext context) {
@@ -51,6 +54,13 @@ public class SpringExtensionFactory implements ExtensionFactory {
         contexts.clear();
     }
 
+    /**
+     * ，遍历 contexts ，调用其 ApplicationContext#getBean(name) 方法，获得 Bean 对象，直到成功并且值类型正确。
+     * @param type object type. 拓展接口
+     * @param name object name. 拓展名
+     * @param <T>
+     * @return
+     */
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getExtension(Class<T> type, String name) {
@@ -62,7 +72,9 @@ public class SpringExtensionFactory implements ExtensionFactory {
 
         for (ApplicationContext context : contexts) {
             if (context.containsBean(name)) {
+                // 获得属性
                 Object bean = context.getBean(name);
+                // 判断类型
                 if (type.isInstance(bean)) {
                     return (T) bean;
                 }

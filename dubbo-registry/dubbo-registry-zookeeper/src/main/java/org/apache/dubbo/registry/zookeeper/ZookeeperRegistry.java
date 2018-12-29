@@ -108,6 +108,13 @@ public class ZookeeperRegistry extends FailbackRegistry {
         }
     }
 
+    /**
+     *   流程：
+     1.服务提供者启动时向/dubbo/com.foo.BarService/providers目录下写入URL
+     2.服务消费者启动时订阅/dubbo/com.foo.BarService/providers目录下的URL向/dubbo/com.foo.BarService/consumers目录下写入自己的URL
+     3.监控中心启动时订阅/dubbo/com.foo.BarService目录下的所有提供者和消费者URL
+     * @param url
+     */
     @Override
     protected void doRegister(URL url) {
         try {
@@ -130,6 +137,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
     protected void doSubscribe(final URL url, final NotifyListener listener) {
         try {
             if (Constants.ANY_VALUE.equals(url.getServiceInterface())) {
+                //"dubbo"
                 String root = toRootPath();
                 ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(url);
                 if (listeners == null) {
@@ -176,6 +184,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
                         listeners.putIfAbsent(listener, new ChildListener() {
                             @Override
                             public void childChanged(String parentPath, List<String> currentChilds) {
+                                //这里设置了监听回调的地址,即回调给FailbackRegistry中的notify
                                 ZookeeperRegistry.this.notify(url, listener, toUrlsWithEmpty(url, parentPath, currentChilds));
                             }
                         });
@@ -187,6 +196,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
                         urls.addAll(toUrlsWithEmpty(url, path, children));
                     }
                 }
+                //更新新的服务信息,服务启动和节点更新回调(前面设置了回调到这里)都会调用到这里
                 notify(url, listener, urls);
             }
         } catch (Throwable e) {

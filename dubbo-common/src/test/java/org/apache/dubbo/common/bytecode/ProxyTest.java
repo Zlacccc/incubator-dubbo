@@ -17,9 +17,6 @@
 package org.apache.dubbo.common.bytecode;
 
 import junit.framework.TestCase;
-import net.sf.cglib.proxy.Enhancer;
-import net.sf.cglib.proxy.MethodInterceptor;
-import net.sf.cglib.proxy.MethodProxy;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -57,7 +54,7 @@ public class ProxyTest extends TestCase {
                 return null;
             }
         });
-
+/*
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(test.getClass());
         enhancer.setCallback(new MethodInterceptor() {
@@ -71,7 +68,7 @@ public class ProxyTest extends TestCase {
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
             Assert.fail();
-        }
+        }*/
     }
 
     public static interface ITest {

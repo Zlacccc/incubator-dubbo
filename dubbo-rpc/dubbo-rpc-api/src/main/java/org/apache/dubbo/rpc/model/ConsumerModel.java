@@ -34,6 +34,7 @@ public class ConsumerModel {
 
         if (proxyObject != null) {
             for (Method method : methods) {
+                //将提供者所有方法类型、返回类型、参数类型放进集合
                 methodModels.put(method, new ConsumerMethodModel(method));
             }
         }

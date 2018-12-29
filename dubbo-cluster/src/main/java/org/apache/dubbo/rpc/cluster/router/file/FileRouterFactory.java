@@ -29,7 +29,7 @@ import java.io.IOException;
 
 public class FileRouterFactory implements RouterFactory {
 
-    public static final String NAME = "file";
+    public static final String NAME = "afile";
 
     private RouterFactory routerFactory;
 

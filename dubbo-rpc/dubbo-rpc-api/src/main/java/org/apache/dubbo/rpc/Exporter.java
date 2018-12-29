@@ -18,6 +18,7 @@ package org.apache.dubbo.rpc;
 
 /**
  * Exporter. (API/SPI, Prototype, ThreadSafe)
+ * Invoker 暴露服务在 Protocol 上的对象。
  *
  * @see org.apache.dubbo.rpc.Protocol#export(Invoker)
  * @see org.apache.dubbo.rpc.ExporterListener
@@ -27,6 +28,7 @@ public interface Exporter<T> {
 
     /**
      * get invoker.
+     * 获得对应的 Invoker 。
      *
      * @return invoker
      */
@@ -37,6 +39,8 @@ public interface Exporter<T> {
      * <p>
      * <code>
      * getInvoker().destroy();
+     *
+     * 取消暴露。
      * </code>
      */
     void unexport();

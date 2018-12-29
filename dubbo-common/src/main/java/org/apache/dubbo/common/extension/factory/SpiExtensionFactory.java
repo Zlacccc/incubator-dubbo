@@ -25,6 +25,14 @@ import org.apache.dubbo.common.extension.SPI;
  */
 public class SpiExtensionFactory implements ExtensionFactory {
 
+    /**
+     * 对相应的type生成对应的ExtensionLoader再找到Adaptive扩展点返回。至此，便完成了一个class实例化后，
+     * 其内部所有的可注入的变量的注入操作。ExtensionFactory就相当于所有扩展点的工厂，提供相应的接口去取获取扩展点
+     * @param type object type.
+     * @param name object name.
+     * @param <T>
+     * @return
+     */
     @Override
     public <T> T getExtension(Class<T> type, String name) {
         if (type.isInterface() && type.isAnnotationPresent(SPI.class)) {

@@ -35,7 +35,7 @@ public interface ThreadPool {
      * @param url URL contains thread parameter
      * @return thread pool
      */
-    @Adaptive({Constants.THREADPOOL_KEY})
-    Executor getExecutor(URL url);
+    @Adaptive({Constants.THREADPOOL_KEY})//基于 Dubbo SPI Adaptive 机制，加载对应的线程池实现，使用 URL.threadpool 属性
+    Executor getExecutor(URL url);//获得对应的线程池的执行器。
 
 }

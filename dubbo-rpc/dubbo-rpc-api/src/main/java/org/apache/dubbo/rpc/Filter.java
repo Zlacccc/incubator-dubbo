@@ -20,6 +20,7 @@ import org.apache.dubbo.common.extension.SPI;
 
 /**
  * Filter. (SPI, Singleton, ThreadSafe)
+ * 过滤器接口 和我们平时理解的 javax.servlet.Filter 基本一致。
  */
 @SPI
 public interface Filter {
@@ -33,7 +34,7 @@ public interface Filter {
      * // after filter
      * return result;
      * </code>
-     *
+     * 执行 Invoker 的过滤逻辑
      * @param invoker    service
      * @param invocation invocation.
      * @return invoke result.

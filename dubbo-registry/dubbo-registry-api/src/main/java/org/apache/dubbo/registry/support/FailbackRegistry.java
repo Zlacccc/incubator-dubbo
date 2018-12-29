@@ -43,19 +43,35 @@ import java.util.concurrent.TimeUnit;
 public abstract class FailbackRegistry extends AbstractRegistry {
 
     // Scheduled executor service
+    /**
+     * 定时任务执行器
+     */
     private final ScheduledExecutorService retryExecutor = Executors.newScheduledThreadPool(1, new NamedThreadFactory("DubboRegistryFailedRetryTimer", true));
 
     // Timer for failure retry, regular check if there is a request for failure, and if there is, an unlimited retry
+    /**
+     * 失败重试定时器，定时检查是否有请求失败，如有，无限次重试
+     */
     private final ScheduledFuture<?> retryFuture;
-
+    /**
+      * 失败发起注册失败的 URL 集合
+      */
     private final Set<URL> failedRegistered = new ConcurrentHashSet<URL>();
-
+    /**
+       * 失败取消注册失败的 URL 集合
+       */
     private final Set<URL> failedUnregistered = new ConcurrentHashSet<URL>();
-
+    /**
+       * 失败发起订阅失败的监听器集合
+       */
     private final ConcurrentMap<URL, Set<NotifyListener>> failedSubscribed = new ConcurrentHashMap<URL, Set<NotifyListener>>();
-
+    /**
+      * 失败取消订阅失败的监听器集合
+       */
     private final ConcurrentMap<URL, Set<NotifyListener>> failedUnsubscribed = new ConcurrentHashMap<URL, Set<NotifyListener>>();
-
+    /**
+     :  * 失败通知通知的 URL 集合
+       */
     private final ConcurrentMap<URL, Map<NotifyListener, List<URL>>> failedNotified = new ConcurrentHashMap<URL, Map<NotifyListener, List<URL>>>();
 
     /**
@@ -65,12 +81,18 @@ public abstract class FailbackRegistry extends AbstractRegistry {
 
     public FailbackRegistry(URL url) {
         super(url);
+        // 重试频率，单位：毫秒
         this.retryPeriod = url.getParameter(Constants.REGISTRY_RETRY_PERIOD_KEY, Constants.DEFAULT_REGISTRY_RETRY_PERIOD);
+        // 创建失败重试定时器
         this.retryFuture = retryExecutor.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
                 // Check and connect to the registry
                 try {
+                    /**
+                     * retry()方法从set集合里面取出注册失败的url，然后不断去重新注册。
+                     * 如果注册中心当机了，但是只要注册中心重新启动之后，dubbo还是会去重新注册的。
+                     */
                     retry();
                 } catch (Throwable t) { // Defensive fault tolerance
                     logger.error("Unexpected error occur at failed retry, cause: " + t.getMessage(), t);
@@ -193,6 +215,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
         removeFailedSubscribed(url, listener);
         try {
             // Sending a subscription request to the server side
+            // 向服务器端发送注册请求
             doSubscribe(url, listener);
         } catch (Exception e) {
             Throwable t = e;
@@ -203,6 +226,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
                 logger.error("Failed to subscribe " + url + ", Using cached list: " + urls + " from cache file: " + getUrl().getParameter(Constants.FILE_KEY, System.getProperty("user.home") + "/dubbo-registry-" + url.getHost() + ".cache") + ", cause: " + t.getMessage(), t);
             } else {
                 // If the startup detection is opened, the Exception is thrown directly.
+                // 如果开启了启动时检测，则直接抛出异常
                 boolean check = getUrl().getParameter(Constants.CHECK_KEY, true)
                         && url.getParameter(Constants.CHECK_KEY, true);
                 boolean skipFailback = t instanceof SkipFailbackWrapperException;
@@ -217,6 +241,7 @@ public abstract class FailbackRegistry extends AbstractRegistry {
             }
 
             // Record a failed registration request to a failed list, retry regularly
+            //   将失败的注册请求记录到失败列表，定时重试
             addFailedSubscribed(url, listener);
         }
     }
