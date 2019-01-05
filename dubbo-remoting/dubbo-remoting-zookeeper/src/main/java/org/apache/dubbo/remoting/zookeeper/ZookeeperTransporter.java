@@ -19,6 +19,7 @@ package org.apache.dubbo.remoting.zookeeper;
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.Adaptive;
+import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.extension.SPI;
 
 //Zookeeper 工厂接口
@@ -35,5 +36,28 @@ public interface ZookeeperTransporter {
      */
     @Adaptive({Constants.CLIENT_KEY, Constants.TRANSPORTER_KEY})
     ZookeeperClient connect(URL url);
+
+
+    public class ZookeeperTransporter$Adaptive implements org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter {
+        private static final org.apache.dubbo.common.logger.Logger logger = org.apache.dubbo.common.logger.LoggerFactory.getLogger(ExtensionLoader.class);
+        private java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(0);
+        @Override
+        public org.apache.dubbo.remoting.zookeeper.ZookeeperClient connect(org.apache.dubbo.common.URL arg0) {
+            if (arg0 == null) throw new IllegalArgumentException("url == null");
+            org.apache.dubbo.common.URL url = arg0;
+            String extName = url.getParameter("client", url.getParameter("transporter", "curator"));
+            if(extName == null) throw new IllegalStateException("Fail to get extension(org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter) name from url(" + url.toString() + ") use keys([client, transporter])");
+            org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter extension = null;
+            try {
+                extension = (org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter) ExtensionLoader.getExtensionLoader(org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter.class).getExtension(extName);
+            }catch(Exception e){
+                if (count.incrementAndGet() == 1) {
+                    logger.warn("Failed to find extension named " + extName + " for type org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter, will use default extension curator instead.", e);
+                }
+                extension = (org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter)ExtensionLoader.getExtensionLoader(org.apache.dubbo.remoting.zookeeper.ZookeeperTransporter.class).getExtension("curator");
+            }
+            return extension.connect(arg0);
+        }
+    }
 
 }

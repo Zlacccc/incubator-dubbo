@@ -19,6 +19,7 @@ package org.apache.dubbo.common.threadpool;
 import org.apache.dubbo.common.Constants;
 import org.apache.dubbo.common.URL;
 import org.apache.dubbo.common.extension.Adaptive;
+import org.apache.dubbo.common.extension.ExtensionLoader;
 import org.apache.dubbo.common.extension.SPI;
 
 import java.util.concurrent.Executor;
@@ -38,4 +39,28 @@ public interface ThreadPool {
     @Adaptive({Constants.THREADPOOL_KEY})//基于 Dubbo SPI Adaptive 机制，加载对应的线程池实现，使用 URL.threadpool 属性
     Executor getExecutor(URL url);//获得对应的线程池的执行器。
 
+
+    public class ThreadPool$Adaptive implements org.apache.dubbo.common.threadpool.ThreadPool {
+        private static final org.apache.dubbo.common.logger.Logger logger = org.apache.dubbo.common.logger.LoggerFactory.getLogger(ExtensionLoader.class);
+        private java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger(0);
+
+        @Override
+        public java.util.concurrent.Executor getExecutor(org.apache.dubbo.common.URL arg0) {
+            if (arg0 == null) throw new IllegalArgumentException("url == null");
+            org.apache.dubbo.common.URL url = arg0;
+            String extName = url.getParameter("threadpool", "fixed");
+            if (extName == null)
+                throw new IllegalStateException("Fail to get extension(org.apache.dubbo.common.threadpool.ThreadPool) name from url(" + url.toString() + ") use keys([threadpool])");
+            org.apache.dubbo.common.threadpool.ThreadPool extension = null;
+            try {
+                extension = (org.apache.dubbo.common.threadpool.ThreadPool) ExtensionLoader.getExtensionLoader(org.apache.dubbo.common.threadpool.ThreadPool.class).getExtension(extName);
+            } catch (Exception e) {
+                if (count.incrementAndGet() == 1) {
+                    logger.warn("Failed to find extension named " + extName + " for type org.apache.dubbo.common.threadpool.ThreadPool, will use default extension fixed instead.", e);
+                }
+                extension = (org.apache.dubbo.common.threadpool.ThreadPool) ExtensionLoader.getExtensionLoader(org.apache.dubbo.common.threadpool.ThreadPool.class).getExtension("fixed");
+            }
+            return extension.getExecutor(arg0);
+        }
+    }
 }
