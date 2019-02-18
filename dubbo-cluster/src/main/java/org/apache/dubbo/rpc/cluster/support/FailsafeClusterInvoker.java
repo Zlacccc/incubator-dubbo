@@ -34,6 +34,8 @@ import java.util.List;
  *
  * <a href="http://en.wikipedia.org/wiki/Fail-safe">Fail-safe</a>
  *
+ *
+ * 失败安全，出现异常时，直接忽略。通常用于写入审计日志等操作。
  */
 public class FailsafeClusterInvoker<T> extends AbstractClusterInvoker<T> {
     private static final Logger logger = LoggerFactory.getLogger(FailsafeClusterInvoker.class);
@@ -42,6 +44,8 @@ public class FailsafeClusterInvoker<T> extends AbstractClusterInvoker<T> {
         super(directory);
     }
 
+    //FailsafeCluster实现比较简单，根据负载均衡机制选择一个Invoker后只调用1次，不管结果如何，不再进行任何重试：
+    // 如果调用正常就返回Result，否则返回<u>一个空的RpcResult</u>，这是和FailfastCluster的唯一区别，不会把任何异常信息返回给consumer；
     @Override
     public Result doInvoke(Invocation invocation, List<Invoker<T>> invokers, LoadBalance loadbalance) throws RpcException {
         try {

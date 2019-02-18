@@ -53,8 +53,11 @@ public abstract class AbstractLoadBalance implements LoadBalance {
         if (weight > 0) {
             long timestamp = invoker.getUrl().getParameter(Constants.REMOTE_TIMESTAMP_KEY, 0L);
             if (timestamp > 0L) {
+                // provider已经运行时间
                 int uptime = (int) (System.currentTimeMillis() - timestamp);
+                // 得到warmup的值，默认为10分钟
                 int warmup = invoker.getUrl().getParameter(Constants.WARMUP_KEY, Constants.DEFAULT_WARMUP);
+                // provider运行时间少于预热时间，那么需要重新计算权重weight（即需要降权）
                 if (uptime > 0 && uptime < warmup) {
                     weight = calculateWarmupWeight(uptime, warmup, weight);
                 }

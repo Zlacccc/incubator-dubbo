@@ -40,6 +40,9 @@ public class FailfastClusterInvoker<T> extends AbstractClusterInvoker<T> {
         super(directory);
     }
 
+    //FailfastCluster实现比较简单，根据负载均衡机制选择一个Invoker后只调用1次，不管结果如何，不再进行任何重试：
+    // 如果调用正常就返回Result，否则返回<u>记录了详细异常信息的RpcException</u>；
+    //通常用于非幂等性的写操作，比如新增记录。
     @Override
     public Result doInvoke(Invocation invocation, List<Invoker<T>> invokers, LoadBalance loadbalance) throws RpcException {
         checkInvokers(invokers, invocation);

@@ -39,25 +39,33 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
 
     @Override
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
+        // key表示方法，例如com.alibaba.dubbo.demo.TestService.getRandomNumber， 即负载均衡算法细化到每个方法的调用；
         String key = invokers.get(0).getUrl().getServiceKey() + "." + invocation.getMethodName();
+        // provider的总个数
         int length = invokers.size(); // Number of invokers
+        // 最大权重, 只是一个临时值, 所以设置为0, 当遍历invokers时接口的weight肯定大于0，马上就会替换成一个真实的maxWeight的值；
         int maxWeight = 0; // The maximum weight
+        // 最小权重，只是一个临时值, 所以设置为Integer类型最大值, 当遍历invokers时接口的weight肯定小于这个数，马上就会替换成一个真实的minWeight的值；
         int minWeight = Integer.MAX_VALUE; // The minimum weight
         final List<Invoker<T>> nonZeroWeightedInvokers = new ArrayList<>();
         for (int i = 0; i < length; i++) {
+            // 从Invoker的URL中获取权重时，dubbo会判断是否warnup了，即只有当invoke这个jvm进程的运行时间超过warnup(默认为10分钟)时间，配置的weight才会生效；
             int weight = getWeight(invokers.get(i), invocation);
+            // 重新计算最大权重值
             maxWeight = Math.max(maxWeight, weight); // Choose the maximum weight
+            // 重新计算最小权重值
             minWeight = Math.min(minWeight, weight); // Choose the minimum weight
             if (weight > 0) {
                 nonZeroWeightedInvokers.add(invokers.get(i));
             }
         }
+        // 每个方法对应一个AtomicPositiveInteger，其序数从0开始，
         AtomicPositiveInteger sequence = sequences.get(key);
         if (sequence == null) {
             sequences.putIfAbsent(key, new AtomicPositiveInteger());
             sequence = sequences.get(key);
         }
-
+        // 如果各provider配置的权重不一样
         if (maxWeight > 0 && minWeight < maxWeight) {
             AtomicPositiveInteger indexSeq = indexSeqs.get(key);
             if (indexSeq == null) {
@@ -73,6 +81,7 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
                 } else {
                     currentWeight = sequence.get() % maxWeight;
                 }
+                // 筛选权重大于当前权重基数的Invoker，从而达到给更大权重的invoke加权的目的
                 if (getWeight(nonZeroWeightedInvokers.get(index), invocation) > currentWeight) {
                     return nonZeroWeightedInvokers.get(index);
                 }

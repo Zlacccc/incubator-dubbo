@@ -38,6 +38,7 @@ import java.util.concurrent.ConcurrentMap;
 public class ConsistentHashLoadBalance extends AbstractLoadBalance {
     public static final String NAME = "consistenthash";
 
+    //定义全局一致性hash选择器的ConcurrentMap<String, ConsistentHashSelector<?>> selectors，key为方法名称
     private final ConcurrentMap<String, ConsistentHashSelector<?>> selectors = new ConcurrentHashMap<String, ConsistentHashSelector<?>>();
 
     @SuppressWarnings("unchecked")
@@ -47,6 +48,8 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
         String key = invokers.get(0).getUrl().getServiceKey() + "." + methodName;
         int identityHashCode = System.identityHashCode(invokers);
         ConsistentHashSelector<T> selector = (ConsistentHashSelector<T>) selectors.get(key);
+        //如果一致性hash选择器不存在或者与以前保存的一致性hash选择器不一样（即dubbo服务provider有变化，
+        // 通过System.identityHashCode(invokers)计算一个identityHashCode值） 则需要重新构造一个一致性hash选择器；
         if (selector == null || selector.identityHashCode != identityHashCode) {
             selectors.put(key, new ConsistentHashSelector<T>(invokers, methodName, identityHashCode));
             selector = (ConsistentHashSelector<T>) selectors.get(key);
@@ -87,8 +90,11 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
         }
 
         public Invoker<T> select(Invocation invocation) {
+            //根据Invocation中的参数invocation.getArguments()转成key；
             String key = toKey(invocation.getArguments());
+            //算出这个key的md5值；
             byte[] digest = md5(key);
+            //根据md5值的hash值从TreeMap中选择一个Invoker；
             return selectForKey(hash(digest, 0));
         }
 
