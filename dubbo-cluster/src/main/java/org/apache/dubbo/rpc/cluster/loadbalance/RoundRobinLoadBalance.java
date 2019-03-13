@@ -39,7 +39,7 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
 
     @Override
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
-        // key表示方法，例如com.alibaba.dubbo.demo.TestService.getRandomNumber， 即负载均衡算法细化到每个方法的调用；
+        // key = 全限定类名 + "." + 方法名，比如 com.xxx.DemoService.sayHello
         String key = invokers.get(0).getUrl().getServiceKey() + "." + invocation.getMethodName();
         // provider的总个数
         int length = invokers.size(); // Number of invokers
@@ -60,15 +60,19 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
             }
         }
         // 每个方法对应一个AtomicPositiveInteger，其序数从0开始，
+        // 查找 key 对应的对应 AtomicPositiveInteger 实例，为空则创建。
+        // 这里可以把 AtomicPositiveInteger 看成一个黑盒，大家只要知道
+        // AtomicPositiveInteger 用于记录服务的调用编号即可
         AtomicPositiveInteger sequence = sequences.get(key);
         if (sequence == null) {
             sequences.putIfAbsent(key, new AtomicPositiveInteger());
             sequence = sequences.get(key);
         }
-        // 如果各provider配置的权重不一样
+        // 如果最小权重小于最大权重，表明服务提供者之间的权重是不相等的
         if (maxWeight > 0 && minWeight < maxWeight) {
             AtomicPositiveInteger indexSeq = indexSeqs.get(key);
             if (indexSeq == null) {
+                // 创建 AtomicPositiveInteger，默认值为 -1
                 indexSeqs.putIfAbsent(key, new AtomicPositiveInteger(-1));
                 indexSeq = indexSeqs.get(key);
             }
@@ -76,6 +80,7 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
             while (true) {
                 int index = indexSeq.incrementAndGet() % length;
                 int currentWeight;
+                // 每循环一轮（index = 0），重新计算 currentWeight
                 if (index == 0) {
                     currentWeight = sequence.incrementAndGet() % maxWeight;
                 } else {
@@ -89,5 +94,14 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
         }
         // Round robin
         return invokers.get(sequence.getAndIncrement() % length);
+    }
+
+
+    public static void main(String[] args) {
+        System.out.println(1%10);
+        System.out.println(2%10);
+        System.out.println(5%10);
+        System.out.println(15%10);
+        System.out.println(1%100);
     }
 }

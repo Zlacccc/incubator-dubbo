@@ -75,14 +75,21 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
             // 注意：如果列表发生了变化，那么invoked判断会失效，因为invoker示例已经改变
             if (i > 0) {
                 checkWhetherDestroyed();
+                // 在进行重试前重新列举 Invoker，这样做的好处是，如果某个服务挂了，
+                // 通过调用 list 可得到最新可用的 Invoker 列表
                 copyinvokers = list(invocation);
                 // check again
+                // 对 copyinvokers 进行判空检查
                 checkInvokers(copyinvokers, invocation);
             }
+            // 通过负载均衡选择 Invoker
             Invoker<T> invoker = select(loadbalance, invocation, copyinvokers, invoked);
+            // 添加到 invoker 到 invoked 列表中
             invoked.add(invoker);
+            // 设置 invoked 到 RPC 上下文中
             RpcContext.getContext().setInvokers((List) invoked);
             try {
+                // 调用目标 Invoker 的 invoke 方法
                 Result result = invoker.invoke(invocation);
                 if (le != null && logger.isWarnEnabled()) {
                     logger.warn("Although retry the method " + methodName

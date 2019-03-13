@@ -38,7 +38,7 @@ public abstract class AbstractReferenceConfig extends AbstractInterfaceConfig {
     protected Boolean check;
 
     // whether to eagle-init
-    //是否在afterPropertiesSet()时饥饿初始化引用，否则等到有人注入或引用该实例时再初始化。
+    //是否在afterPropertiesSet()时初始化引用，否则等到有人注入或引用该实例时再初始化。
     protected Boolean init;
 
     // whether to use generic interface

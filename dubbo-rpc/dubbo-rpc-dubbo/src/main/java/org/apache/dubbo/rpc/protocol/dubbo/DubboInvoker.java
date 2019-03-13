@@ -81,11 +81,13 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
     protected Result doInvoke(final Invocation invocation) throws Throwable {
         RpcInvocation inv = (RpcInvocation) invocation;
         final String methodName = RpcUtils.getMethodName(invocation);
+        // 设置 path 和 version 到 attachment 中
         inv.setAttachment(Constants.PATH_KEY, getUrl().getPath());
         inv.setAttachment(Constants.VERSION_KEY, version);
 
         ExchangeClient currentClient;
         if (clients.length == 1) {
+            // 从 clients 数组中获取 ExchangeClient
             currentClient = clients[0];
         } else {
             currentClient = clients[index.getAndIncrement() % clients.length];
@@ -110,7 +112,8 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
 
                 // // 异步有返回值
             } else if (isAsync) {
-                // 发送请求，并得到一个 ResponseFuture 实例 通过调用网络客户端client的request,最终调用HeaderExchangeChannel#request方法
+                // 发送请求，并得到一个 ResponseFuture 实例
+                // 通过调用网络客户端client的request,最终调用HeaderExchangeChannel#request方法
                 ResponseFuture future = currentClient.request(inv, timeout);
                 // For compatibility
                 // 设置 future 到上下文中
@@ -130,7 +133,8 @@ public class DubboInvoker<T> extends AbstractInvoker<T> {
                 // 同步调用
             } else {
                 RpcContext.getContext().setFuture(null);
-                // 发送请求，最终调用HeaderExchangeChannel#request方法 得到一个 ResponseFuture 实例，并调用该实例的 get 方法进行等待
+                // 发送请求，最终调用HeaderExchangeChannel#request方法
+                // 得到一个 ResponseFuture 实例，并调用该实例的 get 方法进行等待
                 return (Result) currentClient.request(inv, timeout).get();
             }
         } catch (TimeoutException e) {

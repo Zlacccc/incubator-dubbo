@@ -16,6 +16,10 @@
  */
 package org.apache.dubbo.demo.provider;
 
+import org.apache.dubbo.config.ApplicationConfig;
+import org.apache.dubbo.config.RegistryConfig;
+import org.apache.dubbo.config.ServiceConfig;
+import org.apache.dubbo.demo.DemoService;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class Provider {
@@ -26,8 +30,15 @@ public class Provider {
      * before running your application.
      */
     public static void main(String[] args) throws Exception {
-        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"META-INF/spring/dubbo-demo-provider.xml"});
+       /* ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"META-INF/spring/dubbo-demo-provider.xml"});
         context.start();
-        System.in.read(); // press any key to exit
+        System.in.read(); // press any key to exit*/
+        ServiceConfig<DemoServiceImpl> service = new ServiceConfig<>();
+        service.setApplication(new ApplicationConfig("dubbo-demo-api-provider"));
+        service.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
+        service.setInterface(DemoService.class);
+        service.setRef(new DemoServiceImpl());
+        service.export();
+        System.in.read();
     }
 }
